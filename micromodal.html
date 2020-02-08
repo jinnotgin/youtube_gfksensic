@@ -1,0 +1,403 @@
+<script>
+  // config
+  var config = {
+    global: {
+      regionId: "sg",
+      projectId: "sg1",
+      mediaId: "creative_at_work"
+    }
+  };
+</script>
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.2/tingle.min.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css"
+/>
+
+<style>
+  .storeys-video-modal .tingle-modal-box {
+    width: 85%;
+  }
+  .storeys-video-modal .tingle-modal-box__content {
+    padding: 1rem;
+  }
+  .storeys-video-modal .closeButtonContainer {
+    position: absolute;
+    background-color: rgb(38, 38, 38);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid white;
+    right: -15px;
+    top: -15px;
+    box-shadow: 0px 0px 2px 2px grey;
+    cursor: pointer;
+  }
+  .storeys-video-modal .closeButtonContainer .closeButton:before {
+    content: "\f00d";
+    font-family: "Font Awesome 5 Free";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+  }
+  #playerContainer {
+    display: flex;
+  }
+  a[href="#playVideo"]:hover div img {
+    opacity: 0.75;
+  }
+  /*.video-thumbnail {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    margin: 30px;
+  }*/
+  a[href="#playVideo"] div:before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    content: "\f144";
+    font-family: "Font Awesome 5 Free";
+    font-size: 100px;
+    color: #fff;
+    opacity: 0.8;
+    text-shadow: 0px 0px 30px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+  }
+  a[href="#playVideo"]:hover div:before {
+    color: #eee;
+  }
+
+  .storeys-video-modal .tingle-modal__close {
+    display: none;
+  }
+
+  @media (max-width: 540px) {
+    .storeys-video-modal.tingle-modal {
+      display: flex;
+    }
+
+    .storeys-video-modal .tingle-modal-box {
+      border-radius: 4px;
+    }
+
+    .storeys-video-modal .tingle-modal-box__content {
+      padding: 0.6rem;
+    }
+    /*
+  .storeys-video-modal .tingle-modal__close {
+    top: 2rem;
+    right: 2rem;
+    left: unset;
+    display: unset;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background-color: transparent;
+    box-shadow: unset;
+    color: #fff;
+  }
+
+  .storeys-video-modal .tingle-modal__closeLabel {
+    display: none;
+  }
+
+  .storeys-video-modal .tingle-modal__closeIcon {
+    display: unset;
+    margin-right: unset;
+    width: unset;
+    vertical-align: unset;
+    font-size: unset;
+    display: none;
+  }
+  */
+  }
+
+  @media (min-width: 540px) and (max-width: 1200px) {
+    .storeys-video-modal .tingle-modal-box__content {
+      padding: 0.8rem;
+    }
+  }
+</style>
+
+<script>
+  // detect current page
+  /*let videoName = "{title}";
+  if (videoName.includes("{title")) videoName = Object.keys(config.videos)[0];*/
+
+  // obtain needed variables
+  if (typeof details !== "object") {
+    var details = {
+      youtubeId: "",
+      contentId: ""
+    };
+  }
+
+  // var { youtubeId, mediaId } = config.videos[videoName];
+  var { youtubeId, contentId } = details;
+  var { regionId, projectId, mediaId } = config.global;
+  var currentConfig = {
+    videoId: youtubeId,
+    tracking: {
+      mediaId,
+      regionId,
+      projectId,
+      contentId
+    }
+  };
+
+  // to load script asyncronously, with callback function
+  function loadScript(src, callback) {
+    var s, r, t;
+    r = false;
+    s = document.createElement("script");
+    s.type = "text/javascript";
+    s.src = src;
+    s.onload = s.onreadystatechange = function() {
+      //console.log( this.readyState ); //uncomment this line to see which ready states are called.
+      if (!r && (!this.readyState || this.readyState == "complete")) {
+        r = true;
+        callback();
+      }
+    };
+    t = document.getElementsByTagName("script")[0];
+    t.parentNode.insertBefore(s, t);
+  }
+
+  // gfk_ssa: configs as per documentation
+  var agent;
+  var gfkSsaConf = {
+    media: currentConfig.tracking.mediaId,
+    url: `//${currentConfig.tracking.regionId}-config.sensic.net/${currentConfig.tracking.projectId}-ssa-w.js`
+  };
+  // gfk_ssa: asynchronous loading as per documentation
+  (function(w, d, c, s, id) {
+    if (d.getElementById(id)) {
+      return;
+    }
+    w["gfk"] = w["gfk"] || {};
+    w["gfk"]["ssa"] = w["gfk"]["ssa"] || {};
+    w["gfk"]["ssa"].agents = w["gfk"]["ssa"].agents || [];
+    w["gfk"]["ssa"].getAgent = function() {
+      var agent = { queue: [], a: arguments };
+
+      agent.notifyLoaded = function() {
+        agent.queue.push({
+          f: "notifyLoaded",
+          t: new Date().getTime(),
+          a: arguments
+        });
+      };
+      agent.notifyPlay = function() {
+        agent.queue.push({
+          f: "notifyPlay",
+          t: new Date().getTime(),
+          a: arguments
+        });
+      };
+      agent.notifyIdle = function() {
+        agent.queue.push({
+          f: "notifyIdle",
+          t: new Date().getTime(),
+          a: arguments
+        });
+      };
+      agent.notifySkipped = function() {
+        agent.queue.push({
+          f: "notifySkipped",
+          t: new Date().getTime(),
+          a: arguments
+        });
+      };
+      w["gfk"]["ssa"].agents.push(agent);
+      return agent;
+    };
+    var tag = d.createElement(s);
+    var el = d.getElementsByTagName(s)[0];
+    tag.id = id;
+    tag.async = true;
+    tag.type = "text/javascript";
+    tag.src = c.url;
+    el.parentNode.insertBefore(tag, el);
+  })(window, document, gfkSsaConf, "script", "gfkSsa");
+
+  // prepare youtube iframe api
+  var player;
+  var tag = document.createElement("script");
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName("script")[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  function YTLoaded() {
+    return typeof YT === "object";
+  }
+
+  function playerLoaded() {
+    return typeof player === "object" && typeof player.playVideo === "function";
+  }
+
+  function resizePlayer() {
+    // https://stackoverflow.com/questions/25197184/get-the-height-of-an-element-minus-padding-margin-border-widths
+    var playerContainerDom = document.querySelector("#playerContainer");
+    var contentWidth, contentHeight;
+    try {
+      contentWidth = window
+        .getComputedStyle(playerContainerDom, null)
+        .getPropertyValue("width");
+    } catch (e) {
+      contentWidth = playerContainerDom.currentStyle.height;
+    }
+    contentWidth = parseFloat(contentWidth.replace("px", ""));
+    contentHeight = (contentWidth / 16) * 9;
+
+    var playerDom = document.getElementById("player");
+    playerDom.setAttribute("height", contentHeight);
+    playerDom.setAttribute("width", contentWidth);
+  }
+
+  function modalOpenHelper() {
+    modal.open();
+    resizePlayer();
+  }
+
+  // intialise a youtube video programitically
+  function initVideo(options) {
+    var { videoId } = currentConfig;
+
+    var playerDom = document.getElementById("player");
+    if (playerDom !== null) {
+      width = playerDom.getAttribute("width");
+      height = playerDom.getAttribute("height");
+    }
+
+    if (YTLoaded()) {
+      player = new YT.Player("player", {
+        videoId: youtubeId,
+        width,
+        height,
+        events: {
+          onReady: onPlayerReady,
+          onStateChange: onPlayerStateChange
+        },
+        playerVars: {
+          rel: 0,   // any related videos shown after pausing will be from same channel
+        },
+      });
+    }
+  }
+
+  // youtube: event handlers
+  function onYouTubeIframeAPIReady() {
+    const playerDom = document.getElementById("player");
+    if (playerDom !== null) initVideo();
+  }
+
+  function onPlayerReady(event) {
+    agent =  gfk.ssa.getAgent(`${currentConfig.tracking.mediaId}`);
+      agent.notifyLoaded(`${currentConfig.tracking.contentId}`, {
+      /*"cp1": "[custom value #1]",
+      "cp2": "[custom value #2]",
+      "cp3": "[custom value #3]",*/
+    });
+  }
+
+  function onPlayerStateChange(event) {
+    try {
+      switch (event.data) {
+        case YT.PlayerState.PLAYING: {
+          console.log("Tracked: Video is playing");
+          return agent.notifyPlay();
+        }
+        case YT.PlayerState.PAUSED: {
+          console.log("Tracked: Video is paused (idle)");
+          return agent.notifyIdle();
+        }
+        case YT.PlayerState.BUFFERING: {
+          console.log("Tracked: Video is buffering (idle)");
+          return agent.notifyIdle();
+        }
+        case YT.PlayerState.ENDED: {
+          console.log("Tracked: Video has ended (idle)");
+          return agent.notifyIdle();
+        }
+        default: {
+          return false;
+        }
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  var modal;
+  loadScript(
+    "https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.2/tingle.min.js",
+    function() {
+      // instanciate new modal
+      modal = new tingle.modal({
+        footer: false,
+        stickyFooter: false,
+        closeMethods: ["overlay", "button", "escape"],
+        closeLabel: "",
+        cssClass: ["storeys-video-modal"],
+        onOpen: function() {
+          console.log("modal open");
+          if (YTLoaded() && playerLoaded()) player.playVideo();
+        },
+        onClose: function() {
+          console.log("modal closed");
+          if (YTLoaded() && playerLoaded()) player.stopVideo();
+        },
+        beforeClose: function() {
+          // here's goes some logic
+          // e.g. save content before closing the modal
+          return true; // close the modal
+          return false; // nothing happens
+        }
+      });
+
+      // set content
+      modal.setContent(
+        `<div class="closeButtonContainer" onclick="modal.close();">
+            <div class="closeButton"></div>
+        </div>
+        <div id="playerContainer">
+          <div id="player"></div>
+        </div>`
+      );
+
+      // add a button
+      /*modal.addFooterBtn(
+        "Button label",
+        "tingle-btn tingle-btn--primary",
+        function() {
+          // here goes some logic
+          modal.close();
+        }
+      );*/
+
+      modalOpenHelper();
+      modal.close();
+
+      initVideo();
+
+      document.querySelector('a[href="#playVideo"]').onclick = function(e) {
+        e.preventDefault();
+        modalOpenHelper();
+      };
+
+      window.onresize = function() {
+        resizePlayer();
+      };
+    }
+  );
+</script>
