@@ -3,7 +3,8 @@
   var config = {
     global: {
       regionId: "sg",
-      mediaId: "creative_at_work"
+      mediaId: "creative_at_work",
+      environment: "preproduction", // either "preproduction" or "production"
     }
   };
 </script>
@@ -133,16 +134,16 @@
   /*let videoName = "{title}";
   if (videoName.includes("{title")) videoName = Object.keys(config.videos)[0];*/
 
-  // obtain needed variables
-  if (typeof details !== "object") {
-    var details = {
-      youtubeId: "",
-      contentId: ""
-    };
-  }
+  if (typeof details !== "object") var details = {};
 
   var { youtubeId = "", contentId = "" } = details;
-  var { regionId = "", projectId = "", mediaId = "" } = config.global;
+  var {
+    regionId = "",
+    projectId = "",
+    mediaId = "",
+    environment = "preproduction"
+  } = config.global;
+
   var currentConfig = {
     videoId: youtubeId,
     tracking: {
@@ -150,7 +151,8 @@
       regionId,
       // projectId,
       contentId
-    }
+    },
+    isProduction: (environment === "production"),
   };
 
   // to load script asyncronously, with callback function
@@ -175,12 +177,12 @@
   var agent;
   var gfkS2sConf = {
     media: currentConfig.tracking.mediaId,
-    //url:    `//${currentConfig.tracking.regionId}-config.sensic.net/s2s-web.js`, // for production
-    url: `//${currentConfig.tracking.regionId}-config-preproduction.sensic.net/s2s-web.js`, // for preproduction
+    url: `//${currentConfig.tracking.regionId}-config${
+      currentConfig.isProduction ? "" : "-preproduction"
+    }.sensic.net/s2s-web.js`,
     optin: true,
     type: "WEB",
-    // logLevel: "none",
-    logLevel: "debug",
+    logLevel: currentConfig.isProduction ? "none" : "debug"
   };
   // gfk_ssa: asynchronous loading as per documentation
   (function(w, d, c, s, id, v) {
@@ -267,7 +269,7 @@
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
   function YTLoaded() {
-    return typeof YT === "object" && typeof YT.Player === 'function';
+    return typeof YT === "object" && typeof YT.Player === "function";
   }
 
   function playerLoaded() {
@@ -323,9 +325,9 @@
           rel: 0 // any related videos shown after pausing will be from same channel
         }
       });
-      console.log('YT Player initialised.')
+      console.log("YT Player initialised.");
     } else {
-      console.log('YT Player not ready, retrying...')
+      console.log("YT Player not ready, retrying...");
       setTimeout(initVideo, 250);
     }
   }
@@ -359,14 +361,19 @@
     const isFullScreen = document.fullscreenElement ? 1 : 0;
     console.log(`Tracked: Video is set to fullScreenMode of ${isFullScreen}`);
     const result = agent.screen(isFullScreen.toString());
-    console.log(result)
+    console.log(result);
   }
 
   function onPlayerReady(event) {
     agent = gfkS2s.getAgent(streamPositionCallback);
     volumeCheck();
-    ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(
-        eventType => document.addEventListener(eventType, fullScreenCheck, false)
+    [
+      "fullscreenchange",
+      "webkitfullscreenchange",
+      "mozfullscreenchange",
+      "msfullscreenchange"
+    ].forEach(eventType =>
+      document.addEventListener(eventType, fullScreenCheck, false)
     );
   }
 
@@ -389,7 +396,7 @@
             currentConfig.tracking.contentId, // contentId
             location.href, // streamId
             { volume: player.getVolume().toString() }, // options
-            {}  // custom parameters
+            {} // custom parameters
           );
           console.log(result);
           return result;
