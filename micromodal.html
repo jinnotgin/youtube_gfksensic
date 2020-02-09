@@ -3,7 +3,6 @@
   var config = {
     global: {
       regionId: "sg",
-      projectId: "sg1",
       mediaId: "creative_at_work"
     }
   };
@@ -142,15 +141,14 @@
     };
   }
 
-  // var { youtubeId, mediaId } = config.videos[videoName];
-  var { youtubeId, contentId } = details;
-  var { regionId, projectId, mediaId } = config.global;
+  var { youtubeId = "", contentId = "" } = details;
+  var { regionId = "", projectId = "", mediaId = "" } = config.global;
   var currentConfig = {
     videoId: youtubeId,
     tracking: {
       mediaId,
       regionId,
-      projectId,
+      // projectId,
       contentId
     }
   };
@@ -175,60 +173,91 @@
 
   // gfk_ssa: configs as per documentation
   var agent;
-  var gfkSsaConf = {
+  var gfkS2sConf = {
     media: currentConfig.tracking.mediaId,
-    url: `//${currentConfig.tracking.regionId}-config.sensic.net/${currentConfig.tracking.projectId}-ssa-w.js`
+    //url:    `//${currentConfig.tracking.regionId}-config.sensic.net/s2s-web.js`, // for production
+    url: `//${currentConfig.tracking.regionId}-config-preproduction.sensic.net/s2s-web.js`, // for preproduction
+    optin: true,
+    type: "WEB",
+    // logLevel: "none",
+    logLevel: "debug",
   };
   // gfk_ssa: asynchronous loading as per documentation
-  (function(w, d, c, s, id) {
+  (function(w, d, c, s, id, v) {
     if (d.getElementById(id)) {
       return;
     }
-    w["gfk"] = w["gfk"] || {};
-    w["gfk"]["ssa"] = w["gfk"]["ssa"] || {};
-    w["gfk"]["ssa"].agents = w["gfk"]["ssa"].agents || [];
-    w["gfk"]["ssa"].getAgent = function() {
-      var agent = { queue: [], a: arguments };
 
-      agent.notifyLoaded = function() {
-        agent.queue.push({
-          f: "notifyLoaded",
-          t: new Date().getTime(),
-          a: arguments
-        });
+    w.gfkS2sConf = c;
+    w[id] = {};
+    w[id].agents = [];
+    var api = [
+      "playStreamLive",
+      "playLive",
+      "playStreamOnDemand",
+      "playVOD",
+      "stop",
+      "skip",
+      "screen",
+      "volume",
+      "impression"
+    ];
+    w.s = (function() {
+      function f(sA, e, cb) {
+        return function() {
+          sA.p = cb();
+          sA.queue.push({ f: e, a: arguments });
+        };
+      }
+      function s(c, pId, cb) {
+        var sA = { queue: [], config: c, cb: cb, pId: pId };
+        for (var i = 0; i < api.length; i++) {
+          e = api[i];
+          sA[e] = f(sA, e, cb);
+        }
+        return sA;
+      }
+      return s;
+    })();
+    w[id].getAgent = function(cb, pId) {
+      var a = {
+        a: new w.s(
+          c,
+          pId || "",
+          cb ||
+            function() {
+              return 0;
+            }
+        )
       };
-      agent.notifyPlay = function() {
-        agent.queue.push({
-          f: "notifyPlay",
-          t: new Date().getTime(),
-          a: arguments
-        });
-      };
-      agent.notifyIdle = function() {
-        agent.queue.push({
-          f: "notifyIdle",
-          t: new Date().getTime(),
-          a: arguments
-        });
-      };
-      agent.notifySkipped = function() {
-        agent.queue.push({
-          f: "notifySkipped",
-          t: new Date().getTime(),
-          a: arguments
-        });
-      };
-      w["gfk"]["ssa"].agents.push(agent);
-      return agent;
+      function g(a, e) {
+        return function() {
+          return a.a[e].apply(a.a, arguments);
+        };
+      }
+      for (var i = 0; i < api.length; i++) {
+        e = api[i];
+        a[e] = g(a, e);
+      }
+      w[id].agents.push(a);
+      return a;
     };
-    var tag = d.createElement(s);
-    var el = d.getElementsByTagName(s)[0];
-    tag.id = id;
-    tag.async = true;
-    tag.type = "text/javascript";
-    tag.src = c.url;
-    el.parentNode.insertBefore(tag, el);
-  })(window, document, gfkSsaConf, "script", "gfkSsa");
+
+    var lJS = function(eId, url) {
+      var tag = d.createElement(s);
+      var el = d.getElementsByTagName(s)[0];
+      tag.id = eId;
+      tag.async = true;
+      tag.type = "text/javascript";
+      tag.src = url;
+      el.parentNode.insertBefore(tag, el);
+    };
+
+    if (c.hasOwnProperty(v)) {
+      lJS(id + v, c[v]);
+    }
+    lJS(id, c.url);
+  })(window, document, gfkS2sConf, "script", "gfkS2s", "visUrl");
 
   // prepare youtube iframe api
   var player;
@@ -238,14 +267,15 @@
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
   function YTLoaded() {
-    return typeof YT === "object";
+    return typeof YT === "object" && typeof YT.Player === 'function';
   }
 
   function playerLoaded() {
     return typeof player === "object" && typeof player.playVideo === "function";
   }
 
-  function resizePlayer() {
+  let timeout_resizePlayer = null;
+  function _resizePlayer() {
     // https://stackoverflow.com/questions/25197184/get-the-height-of-an-element-minus-padding-margin-border-widths
     var playerContainerDom = document.querySelector("#playerContainer");
     var contentWidth, contentHeight;
@@ -263,14 +293,15 @@
     playerDom.setAttribute("height", contentHeight);
     playerDom.setAttribute("width", contentWidth);
   }
-
-  function modalOpenHelper() {
-    modal.open();
-    resizePlayer();
+  function resizePlayer(force = false) {
+    // debouncing
+    clearTimeout(timeout_resizePlayer);
+    if (force) _resizePlayer();
+    else timeout_resizePlayer = setTimeout(_resizePlayer, 200);
   }
 
   // intialise a youtube video programitically
-  function initVideo(options) {
+  function initVideo() {
     var { videoId } = currentConfig;
 
     var playerDom = document.getElementById("player");
@@ -289,9 +320,13 @@
           onStateChange: onPlayerStateChange
         },
         playerVars: {
-          rel: 0,   // any related videos shown after pausing will be from same channel
-        },
+          rel: 0 // any related videos shown after pausing will be from same channel
+        }
       });
+      console.log('YT Player initialised.')
+    } else {
+      console.log('YT Player not ready, retrying...')
+      setTimeout(initVideo, 250);
     }
   }
 
@@ -301,33 +336,81 @@
     if (playerDom !== null) initVideo();
   }
 
-  function onPlayerReady(event) {
-    agent =  gfk.ssa.getAgent(`${currentConfig.tracking.mediaId}`);
-      agent.notifyLoaded(`${currentConfig.tracking.contentId}`, {
-      /*"cp1": "[custom value #1]",
-      "cp2": "[custom value #2]",
-      "cp3": "[custom value #3]",*/
-    });
+  function streamPositionCallback() {
+    return Math.round(player.getCurrentTime() * 1000); //must return milliseconds!
   }
+
+  // volume change detection
+  let prevVolume = null;
+  let timeout_volumeCheck = null;
+  function volumeCheck() {
+    const currentVolume = player.getVolume();
+    if (prevVolume !== null && prevVolume != currentVolume) {
+      console.log(`Tracked: Video is set to volume of ${currentVolume}`);
+      const result = agent.volume(currentVolume.toString());
+      console.log(result);
+    }
+    prevVolume = currentVolume;
+    timeout_volumeCheck = setTimeout(volumeCheck, 500);
+  }
+
+  // full screen check
+  function fullScreenCheck(e) {
+    const isFullScreen = document.fullscreenElement ? 1 : 0;
+    console.log(`Tracked: Video is set to fullScreenMode of ${isFullScreen}`);
+    const result = agent.screen(isFullScreen.toString());
+    console.log(result)
+  }
+
+  function onPlayerReady(event) {
+    agent = gfkS2s.getAgent(streamPositionCallback);
+    volumeCheck();
+    ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(
+        eventType => document.addEventListener(eventType, fullScreenCheck, false)
+    );
+  }
+
+  var currentConfig = {
+    videoId: youtubeId,
+    tracking: {
+      mediaId,
+      regionId,
+      //projectId,   // derepciated
+      contentId
+    }
+  };
 
   function onPlayerStateChange(event) {
     try {
       switch (event.data) {
         case YT.PlayerState.PLAYING: {
           console.log("Tracked: Video is playing");
-          return agent.notifyPlay();
+          const result = agent.playStreamOnDemand(
+            currentConfig.tracking.contentId, // contentId
+            location.href, // streamId
+            { volume: player.getVolume().toString() }, // options
+            {}  // custom parameters
+          );
+          console.log(result);
+          return result;
         }
         case YT.PlayerState.PAUSED: {
           console.log("Tracked: Video is paused (idle)");
-          return agent.notifyIdle();
+          const result = agent.stop();
+          console.log(result);
+          return result;
         }
         case YT.PlayerState.BUFFERING: {
           console.log("Tracked: Video is buffering (idle)");
-          return agent.notifyIdle();
+          const result = agent.stop();
+          console.log(result);
+          return result;
         }
         case YT.PlayerState.ENDED: {
           console.log("Tracked: Video has ended (idle)");
-          return agent.notifyIdle();
+          const result = agent.stop();
+          console.log(result);
+          return result;
         }
         default: {
           return false;
@@ -360,8 +443,9 @@
         beforeClose: function() {
           // here's goes some logic
           // e.g. save content before closing the modal
+          if (agent) agent.stop();
           return true; // close the modal
-          return false; // nothing happens
+          // return false; // nothing happens
         }
       });
 
@@ -385,14 +469,15 @@
         }
       );*/
 
-      modalOpenHelper();
+      // resize the player first, so that user will see the correct size upon clicking
+      modal.open();
+      resizePlayer(true);
       modal.close();
-
-      initVideo();
 
       document.querySelector('a[href="#playVideo"]').onclick = function(e) {
         e.preventDefault();
-        modalOpenHelper();
+        modal.open();
+        resizePlayer(true);
       };
 
       window.onresize = function() {
