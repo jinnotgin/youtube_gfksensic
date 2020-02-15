@@ -395,7 +395,8 @@
   let prevVolume = null;
   let timeout_volumeCheck = null;
   function volumeCheck() {
-    const currentVolume = player.getVolume();
+    let currentVolume = player.isMuted() ? 0 : player.getVolume();
+
     if (prevVolume !== null && prevVolume != currentVolume) {
       console.log(`Tracked: Video is set to volume of ${currentVolume}`);
       const result = agent.volume(currentVolume.toString());
