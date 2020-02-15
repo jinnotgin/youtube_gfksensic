@@ -336,6 +336,7 @@
     const { videoId } = currentConfig;
 
     const playerDom = document.getElementById("player");
+    let width, height;
     if (playerDom !== null) {
       width = playerDom.getAttribute("width");
       height = playerDom.getAttribute("height");
