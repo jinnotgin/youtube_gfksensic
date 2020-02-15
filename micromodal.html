@@ -4,7 +4,6 @@
   var details = {
     youtubeId: "vX8ri6fHfps",
     contentId: "shortclip",
-    testingMode: true,
   };
 </script>
 
@@ -16,6 +15,7 @@
       regionId: "sg",
       mediaId: "creative_at_work",
       environment: "preproduction", // either "preproduction" or "production"
+      testingMode: true, // to delete this line for public sites
     },
   };
 </script>
@@ -147,12 +147,13 @@
 
   if (typeof details !== "object") var details = {};
 
-  const { youtubeId = "", contentId = "", testingMode = false } = details;
+  const { youtubeId = "", contentId = "" } = details;
   const {
     regionId = "",
     projectId = "",
     mediaId = "",
     environment = "preproduction",
+    testingMode = false,
   } = config.global;
 
   const currentConfig = {
@@ -167,6 +168,18 @@
     testingMode,
   };
 
+  const donsole = {
+    log: (...args) => {
+      if (currentConfig.testingMode) console.log(...args);
+    },
+    warn: (...args) => {
+      if (currentConfig.testingMode) console.warn(...args);
+    },
+    error: (...args) => {
+      if (currentConfig.testingMode) console.error(...args);
+    },
+  };
+
   // to load script asyncronously, with callback function
   function loadScript(src, callback) {
     var s, r, t;
@@ -175,7 +188,7 @@
     s.type = "text/javascript";
     s.src = src;
     s.onload = s.onreadystatechange = function() {
-      //console.log( this.readyState ); //uncomment this line to see which ready states are called.
+      //donsole.log( this.readyState ); //uncomment this line to see which ready states are called.
       if (!r && (!this.readyState || this.readyState == "complete")) {
         r = true;
         callback();
@@ -340,9 +353,9 @@
           rel: 0, // any related videos shown after pausing will be from same channel
         },
       });
-      console.log("YT Player initialised.");
+      donsole.log("YT Player initialised.");
     } else {
-      console.log("YT Player not ready, retrying...");
+      donsole.log("YT Player not ready, retrying...");
       setTimeout(initVideo, 250);
     }
   }
@@ -374,20 +387,20 @@
       );
     },
     startCaching: () => {
-      console.log("streamPosition: startCaching");
+      donsole.log("streamPosition: startCaching");
       streamPosition._startCaching();
     },
     stopCaching: () => {
-      console.log("streamPosition: stopCaching");
+      donsole.log("streamPosition: stopCaching");
       clearInterval(streamPosition._timeout_caching);
       streamPosition._setCache(true);
     },
     getCache: () => {
-      console.log("streamPosition: getCache");
+      donsole.log("streamPosition: getCache");
       return streamPosition._cache;
     },
     getNow: () => {
-      console.log("streamPosition: getNow");
+      donsole.log("streamPosition: getNow");
       return streamPosition._getPosition();
     },
   };
@@ -399,9 +412,9 @@
     let currentVolume = player.isMuted() ? 0 : player.getVolume();
 
     if (prevVolume !== null && prevVolume != currentVolume) {
-      console.log(`Tracked: Video is set to volume of ${currentVolume}`);
+      donsole.log(`Tracked: Video is set to volume of ${currentVolume}`);
       const result = agent.volume(currentVolume.toString());
-      console.log(result);
+      donsole.log(result);
     }
     prevVolume = currentVolume;
     timeout_volumeCheck = setTimeout(volumeCheck, 500);
@@ -410,9 +423,9 @@
   // full screen check
   function fullScreenCheck(e) {
     const isFullScreen = document.fullscreenElement ? 1 : 0;
-    console.log(`Tracked: Video is set to fullScreenMode of ${isFullScreen}`);
+    donsole.log(`Tracked: Video is set to fullScreenMode of ${isFullScreen}`);
     const result = agent.screen(isFullScreen.toString());
-    console.log(result);
+    donsole.log(result);
   }
 
   function onPlayerReady(event) {
@@ -435,14 +448,14 @@
         case YT.PlayerState.PLAYING: {
           streamPosition.startCaching();
 
-          console.log("Tracked: Video is playing");
+          donsole.log("Tracked: Video is playing");
           const result = agent.playStreamOnDemand(
             currentConfig.tracking.contentId, // contentId
             currentConfig.testingMode ? "testVideo" : location.href, // streamId
             { volume: player.getVolume().toString() }, // options
             {} // custom parameters
           );
-          console.log(result);
+          donsole.log(result);
           return result;
         }
         case YT.PlayerState.PAUSED:
@@ -453,14 +466,14 @@
           for (item of Object.entries(YT.PlayerState)) {
             numberState[item[1]] = item[0];
           }
-          console.log(`Tracked: Video is stopped (${numberState[event.data]})`);
+          donsole.log(`Tracked: Video is stopped (${numberState[event.data]})`);
 
           const currentTime = new Date().getTime();
           const acceptableDelay = 0.5 * 1000; // 0.5 seconds
 
           let result = false;
           if (currentTime - last_agentStopMeasureEvent < acceptableDelay) {
-            console.log(
+            donsole.log(
               "Repeated stop event, previous tracked event discarded."
             );
           } else {
@@ -470,7 +483,7 @@
             result = agent.stop(latestCachedPosition);
             last_agentStopMeasureEvent = currentTime;
           }
-          console.log(result);
+          donsole.log(result);
           return result;
         }
         default: {
@@ -495,11 +508,11 @@
         closeLabel: "",
         cssClass: ["storeys-video-modal"],
         onOpen: function() {
-          console.log("modal open");
+          donsole.log("modal open");
           if (YTLoaded() && playerLoaded()) player.playVideo();
         },
         onClose: function() {
-          console.log("modal closed");
+          donsole.log("modal closed");
           if (YTLoaded() && playerLoaded()) player.stopVideo();
         },
         beforeClose: function() {
