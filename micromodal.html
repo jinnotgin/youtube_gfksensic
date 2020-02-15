@@ -189,7 +189,7 @@
   let agent;
   const gfkS2sConf = {
     media: currentConfig.tracking.mediaId,
-    url: `${currentConfig.testingMode && "https:"}//${
+    url: `${currentConfig.testingMode ? "https:" : ""}//${
       currentConfig.tracking.regionId
     }-config${
       currentConfig.isProduction ? "" : "-preproduction"
