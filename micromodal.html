@@ -169,14 +169,15 @@
   };
 
   const donsole = {
+    active: currentConfig.testingMode,
     log: (...args) => {
-      if (currentConfig.testingMode) console.log(...args);
+      if (donsole.active) console.log(...args);
     },
     warn: (...args) => {
-      if (currentConfig.testingMode) console.warn(...args);
+      if (donsole.active) console.warn(...args);
     },
     error: (...args) => {
-      if (currentConfig.testingMode) console.error(...args);
+      if (donsole.active) console.error(...args);
     },
   };
 
@@ -461,12 +462,15 @@
         case YT.PlayerState.PAUSED:
         case YT.PlayerState.BUFFERING:
         case YT.PlayerState.ENDED: {
-          // only needed for the console log line
-          const numberState = {};
-          for (item of Object.entries(YT.PlayerState)) {
-            numberState[item[1]] = item[0];
+          if (donsole.active) {
+            const numberState = {};
+            for (item of Object.entries(YT.PlayerState)) {
+              numberState[item[1]] = item[0];
+            }
+            donsole.log(
+              `Tracked: Video is stopped (${numberState[event.data]})`
+            );
           }
-          donsole.log(`Tracked: Video is stopped (${numberState[event.data]})`);
 
           const currentTime = new Date().getTime();
           const acceptableDelay = 0.5 * 1000; // 0.5 seconds
