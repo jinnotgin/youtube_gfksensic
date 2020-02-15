@@ -11,7 +11,7 @@
 <!-- youtube_gfkssa v0.4 (2020-02-15) -->
 <script>
   // config
-  var config = {
+  const config = {
     global: {
       regionId: "sg",
       mediaId: "creative_at_work",
@@ -147,15 +147,15 @@
 
   if (typeof details !== "object") var details = {};
 
-  var { youtubeId = "", contentId = "", testingMode = false } = details;
-  var {
+  const { youtubeId = "", contentId = "", testingMode = false } = details;
+  const {
     regionId = "",
     projectId = "",
     mediaId = "",
     environment = "preproduction",
   } = config.global;
 
-  var currentConfig = {
+  const currentConfig = {
     videoId: youtubeId,
     tracking: {
       mediaId,
@@ -186,8 +186,8 @@
   }
 
   // gfk_ssa: configs as per documentation
-  var agent;
-  var gfkS2sConf = {
+  let agent;
+  const gfkS2sConf = {
     media: currentConfig.tracking.mediaId,
     url: `${currentConfig.testingMode && "https:"}//${
       currentConfig.tracking.regionId
@@ -276,7 +276,7 @@
   })(window, document, gfkS2sConf, "script", "gfkS2s", "visUrl");
 
   // prepare youtube iframe api
-  var player;
+  let player;
   var tag = document.createElement("script");
   tag.src = "https://www.youtube.com/iframe_api";
   var firstScriptTag = document.getElementsByTagName("script")[0];
@@ -293,8 +293,8 @@
   let timeout_resizePlayer = null;
   function _resizePlayer() {
     // https://stackoverflow.com/questions/25197184/get-the-height-of-an-element-minus-padding-margin-border-widths
-    var playerContainerDom = document.querySelector("#playerContainer");
-    var contentWidth, contentHeight;
+    const playerContainerDom = document.querySelector("#playerContainer");
+    let contentWidth, contentHeight;
     try {
       contentWidth = window
         .getComputedStyle(playerContainerDom, null)
@@ -305,7 +305,7 @@
     contentWidth = parseFloat(contentWidth.replace("px", ""));
     contentHeight = (contentWidth / 16) * 9;
 
-    var playerDom = document.getElementById("player");
+    const playerDom = document.getElementById("player");
     playerDom.setAttribute("height", contentHeight);
     playerDom.setAttribute("width", contentWidth);
   }
@@ -319,9 +319,9 @@
   // intialise a youtube video programmatically
 
   function initVideo() {
-    var { videoId } = currentConfig;
+    const { videoId } = currentConfig;
 
-    var playerDom = document.getElementById("player");
+    const playerDom = document.getElementById("player");
     if (playerDom !== null) {
       width = playerDom.getAttribute("width");
       height = playerDom.getAttribute("height");
@@ -483,7 +483,7 @@
     }
   }
 
-  var modal;
+  let modal;
   loadScript(
     "https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.2/tingle.min.js",
     function() {
