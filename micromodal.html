@@ -1,3 +1,13 @@
+<!-- START: For Debug purposes -->
+<a href="#playVideo">Trigger Modal</a>
+<script>
+  var details = {
+    youtubeId: "vX8ri6fHfps",
+    contentId: "shortclip",
+    testingMode: true,
+  };
+</script>
+
 <script>
   // config
   var config = {
@@ -5,7 +15,7 @@
       regionId: "sg",
       mediaId: "creative_at_work",
       environment: "preproduction", // either "preproduction" or "production"
-    }
+    },
   };
 </script>
 
@@ -136,12 +146,12 @@
 
   if (typeof details !== "object") var details = {};
 
-  var { youtubeId = "", contentId = "" } = details;
+  var { youtubeId = "", contentId = "", testingMode = false } = details;
   var {
     regionId = "",
     projectId = "",
     mediaId = "",
-    environment = "preproduction"
+    environment = "preproduction",
   } = config.global;
 
   var currentConfig = {
@@ -150,9 +160,10 @@
       mediaId,
       regionId,
       // projectId,
-      contentId
+      contentId,
     },
-    isProduction: (environment === "production"),
+    isProduction: environment === "production",
+    testingMode,
   };
 
   // to load script asyncronously, with callback function
@@ -177,12 +188,14 @@
   var agent;
   var gfkS2sConf = {
     media: currentConfig.tracking.mediaId,
-    url: `//${currentConfig.tracking.regionId}-config${
+    url: `${currentConfig.testingMode && "https:"}//${
+      currentConfig.tracking.regionId
+    }-config${
       currentConfig.isProduction ? "" : "-preproduction"
     }.sensic.net/s2s-web.js`,
     optin: true,
     type: "WEB",
-    logLevel: currentConfig.isProduction ? "none" : "debug"
+    logLevel: currentConfig.isProduction ? "none" : "debug",
   };
   // gfk_ssa: asynchronous loading as per documentation
   (function(w, d, c, s, id, v) {
@@ -202,7 +215,7 @@
       "skip",
       "screen",
       "volume",
-      "impression"
+      "impression",
     ];
     w.s = (function() {
       function f(sA, e, cb) {
@@ -230,7 +243,7 @@
             function() {
               return 0;
             }
-        )
+        ),
       };
       function g(a, e) {
         return function() {
@@ -302,7 +315,8 @@
     else timeout_resizePlayer = setTimeout(_resizePlayer, 200);
   }
 
-  // intialise a youtube video programitically
+  // intialise a youtube video programmatically
+
   function initVideo() {
     var { videoId } = currentConfig;
 
@@ -319,11 +333,11 @@
         height,
         events: {
           onReady: onPlayerReady,
-          onStateChange: onPlayerStateChange
+          onStateChange: onPlayerStateChange,
         },
         playerVars: {
-          rel: 0 // any related videos shown after pausing will be from same channel
-        }
+          rel: 0, // any related videos shown after pausing will be from same channel
+        },
       });
       console.log("YT Player initialised.");
     } else {
@@ -338,11 +352,46 @@
     if (playerDom !== null) initVideo();
   }
 
-  function streamPositionCallback() {
-    return Math.round(player.getCurrentTime() * 1000); //must return milliseconds!
-  }
+  // stream position manager
+  const streamPosition = {
+    _getPosition: () => {
+      return Math.round(player.getCurrentTime() * 1000); //must return milliseconds!
+    },
+    _setCache: reset => {
+      if (reset) streamPosition._cache = null;
+      else streamPosition._cache = streamPosition._getPosition();
+    },
+    _cache: null,
+    _timeout_caching: null,
+    _cachingFrequency: 500,
+    _startCaching: () => {
+      clearInterval(streamPosition._timeout_caching);
+      streamPosition._setCache();
+      streamPosition._timeout_caching = setTimeout(
+        streamPosition._startCaching,
+        streamPosition._cachingFrequency
+      );
+    },
+    startCaching: () => {
+      console.log("streamPosition: startCaching");
+      streamPosition._startCaching();
+    },
+    stopCaching: () => {
+      console.log("streamPosition: stopCaching");
+      clearInterval(streamPosition._timeout_caching);
+      streamPosition._setCache(true);
+    },
+    getCache: () => {
+      console.log("streamPosition: getCache");
+      return streamPosition._cache;
+    },
+    getNow: () => {
+      console.log("streamPosition: getNow");
+      return streamPosition._getPosition();
+    },
+  };
 
-  // volume change detection
+  // Volume Change Detection using setTimeout
   let prevVolume = null;
   let timeout_volumeCheck = null;
   function volumeCheck() {
@@ -365,61 +414,65 @@
   }
 
   function onPlayerReady(event) {
-    agent = gfkS2s.getAgent(streamPositionCallback);
+    agent = gfkS2s.getAgent(streamPosition.getNow);
     volumeCheck();
     [
       "fullscreenchange",
       "webkitfullscreenchange",
       "mozfullscreenchange",
-      "msfullscreenchange"
+      "msfullscreenchange",
     ].forEach(eventType =>
       document.addEventListener(eventType, fullScreenCheck, false)
     );
   }
 
-  var currentConfig = {
-    videoId: youtubeId,
-    tracking: {
-      mediaId,
-      regionId,
-      //projectId,   // derepciated
-      contentId
-    }
-  };
-
+  let last_agentStopMeasureEvent = 0;
   function onPlayerStateChange(event) {
     try {
       switch (event.data) {
         case YT.PlayerState.PLAYING: {
+          streamPosition.startCaching();
+
           console.log("Tracked: Video is playing");
           const result = agent.playStreamOnDemand(
             currentConfig.tracking.contentId, // contentId
-            location.href, // streamId
+            currentConfig.testingMode ? "testVideo" : location.href, // streamId
             { volume: player.getVolume().toString() }, // options
             {} // custom parameters
           );
           console.log(result);
           return result;
         }
-        case YT.PlayerState.PAUSED: {
-          console.log("Tracked: Video is paused (idle)");
-          const result = agent.stop();
-          console.log(result);
-          return result;
-        }
-        case YT.PlayerState.BUFFERING: {
-          console.log("Tracked: Video is buffering (idle)");
-          const result = agent.stop();
-          console.log(result);
-          return result;
-        }
+        case YT.PlayerState.PAUSED:
+        case YT.PlayerState.BUFFERING:
         case YT.PlayerState.ENDED: {
-          console.log("Tracked: Video has ended (idle)");
-          const result = agent.stop();
+          // only needed for the console log line
+          const numberState = {};
+          for (item of Object.entries(YT.PlayerState)) {
+            numberState[item[1]] = item[0];
+          }
+          console.log(`Tracked: Video is stopped (${numberState[event.data]})`);
+
+          const currentTime = new Date().getTime();
+          const acceptableDelay = 0.5 * 1000; // 0.5 seconds
+
+          let result = false;
+          if (currentTime - last_agentStopMeasureEvent < acceptableDelay) {
+            console.log(
+              "Repeated stop event, previous tracked event discarded."
+            );
+          } else {
+            const latestCachedPosition = streamPosition.getCache();
+            streamPosition.stopCaching();
+
+            result = agent.stop(latestCachedPosition);
+            last_agentStopMeasureEvent = currentTime;
+          }
           console.log(result);
           return result;
         }
         default: {
+          streamPosition.stopCaching();
           return false;
         }
       }
@@ -453,7 +506,7 @@
           if (agent) agent.stop();
           return true; // close the modal
           // return false; // nothing happens
-        }
+        },
       });
 
       // set content
@@ -477,9 +530,9 @@
       );*/
 
       // resize the player first, so that user will see the correct size upon clicking
-      modal.open();
-      resizePlayer(true);
-      modal.close();
+      // modal.open();
+      // resizePlayer(true);
+      // modal.close();
 
       document.querySelector('a[href="#playVideo"]').onclick = function(e) {
         e.preventDefault();
