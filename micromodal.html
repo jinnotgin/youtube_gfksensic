@@ -64,12 +64,6 @@
   a[href="#playVideo"]:hover div img {
     opacity: 0.75;
   }
-  /*.video-thumbnail {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-    margin: 30px;
-  }*/
   a[href="#playVideo"] div:before {
     position: absolute;
     top: 50%;
@@ -104,33 +98,6 @@
     .storeys-video-modal .tingle-modal-box__content {
       padding: 0.6rem;
     }
-    /*
-  .storeys-video-modal .tingle-modal__close {
-    top: 2rem;
-    right: 2rem;
-    left: unset;
-    display: unset;
-    width: 2rem;
-    height: 2rem;
-    border: none;
-    background-color: transparent;
-    box-shadow: unset;
-    color: #fff;
-  }
-
-  .storeys-video-modal .tingle-modal__closeLabel {
-    display: none;
-  }
-
-  .storeys-video-modal .tingle-modal__closeIcon {
-    display: unset;
-    margin-right: unset;
-    width: unset;
-    vertical-align: unset;
-    font-size: unset;
-    display: none;
-  }
-  */
   }
 
   @media (min-width: 540px) and (max-width: 1200px) {
@@ -141,10 +108,6 @@
 </style>
 
 <script>
-  // detect current page
-  /*let videoName = "{title}";
-  if (videoName.includes("{title")) videoName = Object.keys(config.videos)[0];*/
-
   if (typeof details !== "object") var details = {};
 
   const { youtubeId = "", contentId = "" } = details;
@@ -542,8 +505,6 @@
           if (YTLoaded() && playerLoaded()) player.stopVideo();
         },
         beforeClose: function() {
-          // here's goes some logic
-          // e.g. save content before closing the modal
           if (agent) agent.stop();
           return true; // close the modal
           // return false; // nothing happens
@@ -559,21 +520,6 @@
           <div id="player"></div>
         </div>`
       );
-
-      // add a button
-      /*modal.addFooterBtn(
-        "Button label",
-        "tingle-btn tingle-btn--primary",
-        function() {
-          // here goes some logic
-          modal.close();
-        }
-      );*/
-
-      // resize the player first, so that user will see the correct size upon clicking
-      // modal.open();
-      // resizePlayer(true);
-      // modal.close();
 
       document.querySelector('a[href="#playVideo"]').onclick = function(e) {
         e.preventDefault();
