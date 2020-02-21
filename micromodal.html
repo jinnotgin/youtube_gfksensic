@@ -331,7 +331,6 @@
   }
 
   // intialise a youtube video programmatically
-
   function initVideo() {
     const { videoId } = currentConfig;
 
@@ -369,45 +368,65 @@
   }
 
   // stream position manager
-  const streamPosition = {
-    _getPosition: () => {
-      return Math.round(player.getCurrentTime() * 1000); //must return milliseconds!
-    },
-    _setCache: reset => {
-      if (reset) streamPosition._cache = null;
-      else streamPosition._cache = streamPosition._getPosition();
-    },
-    _cache: null,
-    _timeout_caching: null,
-    _cachingFrequency: 500,
-    _startCaching: () => {
-      clearInterval(streamPosition._timeout_caching);
-      streamPosition._setCache();
-      streamPosition._timeout_caching = setTimeout(
-        streamPosition._startCaching,
-        streamPosition._cachingFrequency
-      );
-    },
-    startCaching: () => {
-      donsole.log("streamPosition: startCaching");
-      streamPosition._startCaching();
-    },
-    stopCaching: () => {
-      donsole.log("streamPosition: stopCaching");
-      clearInterval(streamPosition._timeout_caching);
-      streamPosition._setCache(true);
-    },
-    getCache: () => {
-      donsole.log("streamPosition: getCache");
-      return streamPosition._cache;
-    },
-    getNow: () => {
-      donsole.log("streamPosition: getNow");
-      return streamPosition._getPosition();
-    },
-  };
+  class _streamPosition {
+    constructor(cachingFrequency) {
+      this._cachingFrequency = cachingFrequency;
+      this._cache = null;
+      this._timeout_cacher = null;
+    }
 
-  // Volume Change Detection using setTimeout
+    get now() {
+      return Math.round(player.getCurrentTime() * 1000); //must return milliseconds!
+    }
+    set cache(position) {
+      this._cache = position;
+    }
+    get cache() {
+      return this._cache;
+    }
+    _updateCache() {
+      this.cache = this.now;
+    }
+
+    _startCaching() {
+      // caching is implemented using recursive setTimeout calls, rather than setInterval
+      clearTimeout(this._timeout_cacher);
+      this._updateCache();
+      this._timeout_cacher = setTimeout(
+        () => this._startCaching(),
+        this._cachingFrequency
+      );
+    }
+    startCaching() {
+      donsole.log("streamPosition: startCaching");
+      this._startCaching();
+    }
+
+    stopCaching() {
+      donsole.log("streamPosition: stopCaching");
+      clearTimeout(this._timeout_cacher);
+      this.cache = null;
+    }
+
+    getLatestCache() {
+      donsole.log("streamPosition: getLatestCache");
+      const latestCachedPosition = this.cache;
+      const currentPosition = this.now;
+
+      const cacheIsPossiblyOutdated =
+        currentPosition > latestCachedPosition &&
+        currentPosition - latestCachedPosition <= this._cachingFrequency;
+
+      if (cacheIsPossiblyOutdated) {
+        return currentPosition;
+      } else {
+        return latestCachedPosition;
+      }
+    }
+  }
+  const streamPosition = new _streamPosition(100);
+
+  // Volume Change Detection using recursive setTimeout
   let prevVolume = null;
   let timeout_volumeCheck = null;
   function volumeCheck() {
@@ -422,16 +441,18 @@
     timeout_volumeCheck = setTimeout(volumeCheck, 500);
   }
 
-  // full screen check
-  function fullScreenCheck(e) {
-    const isFullScreen = document.fullscreenElement ? 1 : 0;
-    donsole.log(`Tracked: Video is set to fullScreenMode of ${isFullScreen}`);
-    const result = agent.screen(isFullScreen.toString());
-    donsole.log(result);
-  }
+  const isFullScreen = () => (document.fullscreenElement ? 1 : 0);
 
+  // fullScreen check using event listener
+  const fullScreenHandler = e => {
+    const fullScreen = isFullScreen();
+
+    donsole.log(`Tracked: Video is set to fullScreenMode of ${fullScreen}`);
+    const result = agent.screen(fullScreen.toString());
+    donsole.log(result);
+  };
   function onPlayerReady(event) {
-    agent = gfkS2s.getAgent(streamPosition.getNow);
+    agent = gfkS2s.getAgent(() => streamPosition.now);
     volumeCheck();
     [
       "fullscreenchange",
@@ -439,7 +460,7 @@
       "mozfullscreenchange",
       "msfullscreenchange",
     ].forEach(eventType =>
-      document.addEventListener(eventType, fullScreenCheck, false)
+      document.addEventListener(eventType, fullScreenHandler, false)
     );
   }
 
@@ -482,7 +503,7 @@
               "Repeated stop event, previous tracked event discarded."
             );
           } else {
-            const latestCachedPosition = streamPosition.getCache();
+            const latestCachedPosition = streamPosition.getLatestCache();
             streamPosition.stopCaching();
 
             result = agent.stop(latestCachedPosition);
