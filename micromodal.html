@@ -19,7 +19,7 @@
   };
 </script>
 
-<!-- youtube_gfkssa v0.4 (2020-02-15) -->
+<!-- youtube_gfkssa v0.5 (2020-02-21) -->
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.2/tingle.min.css"
@@ -168,17 +168,17 @@
     testingMode,
   };
 
+  // https://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number/32928812
   const donsole = {
-    active: currentConfig.testingMode,
-    log: (...args) => {
-      if (donsole.active) console.log(...args);
-    },
-    warn: (...args) => {
-      if (donsole.active) console.warn(...args);
-    },
-    error: (...args) => {
-      if (donsole.active) console.error(...args);
-    },
+    log: currentConfig.testingMode
+      ? console.log.bind(window.console)
+      : () => {},
+    warn: currentConfig.testingMode
+      ? console.warn.bind(window.console)
+      : () => {},
+    error: currentConfig.testingMode
+      ? console.error.bind(window.console)
+      : () => {},
   };
 
   // to load script asyncronously, with callback function
@@ -413,11 +413,11 @@
       const latestCachedPosition = this.cache;
       const currentPosition = this.now;
 
-      const cacheIsPossiblyOutdated =
+      const cacheIsReasonablyOutdated =
         currentPosition > latestCachedPosition &&
         currentPosition - latestCachedPosition <= this._cachingFrequency;
 
-      if (cacheIsPossiblyOutdated) {
+      if (cacheIsReasonablyOutdated) {
         return currentPosition;
       } else {
         return latestCachedPosition;
@@ -435,7 +435,6 @@
     if (prevVolume !== null && prevVolume != currentVolume) {
       donsole.log(`Tracked: Video is set to volume of ${currentVolume}`);
       const result = agent.volume(currentVolume.toString());
-      donsole.log(result);
     }
     prevVolume = currentVolume;
     timeout_volumeCheck = setTimeout(volumeCheck, 500);
@@ -449,7 +448,6 @@
 
     donsole.log(`Tracked: Video is set to fullScreenMode of ${fullScreen}`);
     const result = agent.screen(fullScreen.toString());
-    donsole.log(result);
   };
   function onPlayerReady(event) {
     agent = gfkS2s.getAgent(() => streamPosition.now);
@@ -475,10 +473,12 @@
           const result = agent.playStreamOnDemand(
             currentConfig.tracking.contentId, // contentId
             currentConfig.testingMode ? "testVideo" : location.href, // streamId
-            { volume: player.getVolume().toString() }, // options
+            {
+              screen: isFullScreen().toString(),
+              volume: player.getVolume().toString(),
+            }, // options
             {} // custom parameters
           );
-          donsole.log(result);
           return result;
         }
         case YT.PlayerState.PAUSED:
