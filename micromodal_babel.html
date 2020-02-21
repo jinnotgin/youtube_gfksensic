@@ -1,0 +1,624 @@
+<!-- START: For Debug purposes -->
+<a href="#playVideo">Trigger Modal</a>
+<script>
+  var details = {
+    youtubeId: "U_KH7Tw97HU",
+    contentId: "shortclip",
+  };
+</script>
+
+<script>
+  // config
+  const config = {
+    global: {
+      regionId: "sg",
+      mediaId: "creative_at_work",
+      environment: "preproduction", // either "preproduction" or "production"
+      testingMode: true, // to delete this line for public sites
+    },
+  };
+</script>
+
+<!-- youtube_gfkssa v0.5 (2020-02-21) -->
+<!-- babel transpiled version -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.2/tingle.min.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css"
+/>
+
+<style>
+  .storeys-video-modal .tingle-modal-box {
+    width: 85%;
+  }
+  .storeys-video-modal .tingle-modal-box__content {
+    padding: 1rem;
+  }
+  .storeys-video-modal .closeButtonContainer {
+    position: absolute;
+    background-color: rgb(38, 38, 38);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid white;
+    right: -15px;
+    top: -15px;
+    box-shadow: 0px 0px 2px 2px grey;
+    cursor: pointer;
+  }
+  .storeys-video-modal .closeButtonContainer .closeButton:before {
+    content: "\f00d";
+    font-family: "Font Awesome 5 Free";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+  }
+  #playerContainer {
+    display: flex;
+  }
+  a[href="#playVideo"]:hover div img {
+    opacity: 0.75;
+  }
+  a[href="#playVideo"] div:before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    content: "\f144";
+    font-family: "Font Awesome 5 Free";
+    font-size: 100px;
+    color: #fff;
+    opacity: 0.8;
+    text-shadow: 0px 0px 30px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+  }
+  a[href="#playVideo"]:hover div:before {
+    color: #eee;
+  }
+
+  .storeys-video-modal .tingle-modal__close {
+    display: none;
+  }
+
+  @media (max-width: 540px) {
+    .storeys-video-modal.tingle-modal {
+      display: flex;
+    }
+
+    .storeys-video-modal .tingle-modal-box {
+      border-radius: 4px;
+    }
+
+    .storeys-video-modal .tingle-modal-box__content {
+      padding: 0.6rem;
+    }
+  }
+
+  @media (min-width: 540px) and (max-width: 1200px) {
+    .storeys-video-modal .tingle-modal-box__content {
+      padding: 0.8rem;
+    }
+  }
+</style>
+
+<script>
+  function _instanceof(left, right) {
+    return right != null &&
+      typeof Symbol !== "undefined" &&
+      right[Symbol.hasInstance]
+      ? !!right[Symbol.hasInstance](left)
+      : left instanceof right;
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!_instanceof(instance, Constructor))
+      throw new TypeError("Cannot call a class as a function");
+  }
+
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      (descriptor.enumerable = descriptor.enumerable || false),
+        (descriptor.configurable = true),
+        "value" in descriptor && (descriptor.writable = true),
+        Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass(Constructor, protoProps, staticProps) {
+    return (
+      protoProps && _defineProperties(Constructor.prototype, protoProps),
+      staticProps && _defineProperties(Constructor, staticProps),
+      Constructor
+    );
+  }
+
+  function _typeof(obj) {
+    "@babel/helpers - typeof";
+    return (
+      (_typeof =
+        typeof Symbol === "function" && typeof Symbol.iterator === "symbol"
+          ? function _typeof(obj) {
+              return typeof obj;
+            }
+          : function _typeof(obj) {
+              return obj &&
+                typeof Symbol === "function" &&
+                obj.constructor === Symbol &&
+                obj !== Symbol.prototype
+                ? "symbol"
+                : typeof obj;
+            }),
+      _typeof(obj)
+    );
+  }
+
+  if (_typeof(details) !== "object") var details = {};
+  var _details$youtubeId = details.youtubeId,
+    youtubeId = _details$youtubeId === void 0 ? "" : _details$youtubeId,
+    _details$contentId = details.contentId,
+    contentId = _details$contentId === void 0 ? "" : _details$contentId;
+  var _config$global = config.global,
+    _config$global$region = _config$global.regionId,
+    regionId = _config$global$region === void 0 ? "" : _config$global$region,
+    _config$global$projec = _config$global.projectId,
+    projectId = _config$global$projec === void 0 ? "" : _config$global$projec,
+    _config$global$mediaI = _config$global.mediaId,
+    mediaId = _config$global$mediaI === void 0 ? "" : _config$global$mediaI,
+    _config$global$enviro = _config$global.environment,
+    environment =
+      _config$global$enviro === void 0
+        ? "preproduction"
+        : _config$global$enviro,
+    _config$global$testin = _config$global.testingMode,
+    testingMode = _config$global$testin !== void 0 && _config$global$testin;
+  var currentConfig = {
+    videoId: youtubeId,
+    tracking: {
+      mediaId: mediaId,
+      regionId: regionId,
+      // projectId,
+      contentId: contentId,
+    },
+    isProduction: environment === "production",
+    testingMode: testingMode,
+  };
+
+  // https://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number/32928812
+  var donsole = {
+    log: currentConfig.testingMode
+      ? console.log.bind(window.console)
+      : function() {},
+    warn: currentConfig.testingMode
+      ? console.warn.bind(window.console)
+      : function() {},
+    error: currentConfig.testingMode
+      ? console.error.bind(window.console)
+      : function() {},
+  };
+
+  // to load script asyncronously, with callback function
+  function loadScript(src, callback) {
+    var s, r, t;
+    (r = false),
+      (s = document.createElement("script")),
+      (s.type = "text/javascript"),
+      (s.src = src),
+      (s.onload = s.onreadystatechange = function() {
+        !r &&
+          (!this.readyState || this.readyState == "complete") &&
+          ((r = true), callback());
+      }),
+      (t = document.getElementsByTagName("script")[0]),
+      t.parentNode.insertBefore(s, t);
+  }
+
+  // gfk_ssa: configs as per documentation
+  var agent;
+  var gfkS2sConf = {
+    media: currentConfig.tracking.mediaId,
+    url: ""
+      .concat(currentConfig.testingMode ? "https:" : "", "//")
+      .concat(currentConfig.tracking.regionId, "-config")
+      .concat(
+        currentConfig.isProduction ? "" : "-preproduction",
+        ".sensic.net/s2s-web.js"
+      ),
+    optin: true,
+    type: "WEB",
+    logLevel: currentConfig.isProduction ? "none" : "debug",
+  };
+
+  // gfk_ssa: asynchronous loading as per documentation
+  (function(w, d, c, s, id, v) {
+    if (!d.getElementById(id)) {
+      (w.gfkS2sConf = c), (w[id] = {}), (w[id].agents = []);
+      var api = [
+        "playStreamLive",
+        "playLive",
+        "playStreamOnDemand",
+        "playVOD",
+        "stop",
+        "skip",
+        "screen",
+        "volume",
+        "impression",
+      ];
+      (w.s = (function() {
+        function f(sA, e, cb) {
+          return function() {
+            (sA.p = cb()),
+              sA.queue.push({
+                f: e,
+                a: arguments,
+              });
+          };
+        }
+
+        function s(c, pId, cb) {
+          var sA = {
+            queue: [],
+            config: c,
+            cb: cb,
+            pId: pId,
+          };
+
+          for (var i = 0; i < api.length; i++)
+            (e = api[i]), (sA[e] = f(sA, e, cb));
+
+          return sA;
+        }
+
+        return s;
+      })()),
+        (w[id].getAgent = function(cb, pId) {
+          function g(a, e) {
+            return function() {
+              return a.a[e].apply(a.a, arguments);
+            };
+          }
+
+          var a = {
+            a: new w.s(
+              c,
+              pId || "",
+              cb ||
+                function() {
+                  return 0;
+                }
+            ),
+          };
+
+          for (var i = 0; i < api.length; i++) (e = api[i]), (a[e] = g(a, e));
+
+          return w[id].agents.push(a), a;
+        });
+
+      var lJS = function lJS(eId, url) {
+        var tag = d.createElement(s);
+        var el = d.getElementsByTagName(s)[0];
+        (tag.id = eId),
+          (tag.async = true),
+          (tag.type = "text/javascript"),
+          (tag.src = url),
+          el.parentNode.insertBefore(tag, el);
+      };
+
+      c.hasOwnProperty(v) && lJS(id + v, c[v]), lJS(id, c.url);
+    }
+  })(window, document, gfkS2sConf, "script", "gfkS2s", "visUrl");
+
+  // prepare youtube iframe api
+  var player;
+  var tag = document.createElement("script");
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName("script")[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  function YTLoaded() {
+    return (
+      (typeof YT === "undefined" ? "undefined" : _typeof(YT)) === "object" &&
+      typeof YT.Player === "function"
+    );
+  }
+
+  function playerLoaded() {
+    return (
+      _typeof(player) === "object" && typeof player.playVideo === "function"
+    );
+  }
+
+  var timeout_resizePlayer = null;
+
+  function _resizePlayer() {
+    // https://stackoverflow.com/questions/25197184/get-the-height-of-an-element-minus-padding-margin-border-widths
+    var playerContainerDom = document.querySelector("#playerContainer");
+    var contentWidth, contentHeight;
+
+    try {
+      contentWidth = window
+        .getComputedStyle(playerContainerDom, null)
+        .getPropertyValue("width");
+    } catch (e) {
+      contentWidth = playerContainerDom.currentStyle.height;
+    }
+
+    (contentWidth = parseFloat(contentWidth.replace("px", ""))),
+      (contentHeight = (contentWidth / 16) * 9);
+    var playerDom = document.getElementById("player");
+    playerDom.setAttribute("height", contentHeight),
+      playerDom.setAttribute("width", contentWidth);
+  }
+
+  function resizePlayer() {
+    var force =
+      !!(arguments.length > 0 && arguments[0] !== undefined) && arguments[0];
+    // debouncing
+    clearTimeout(timeout_resizePlayer),
+      force
+        ? _resizePlayer()
+        : (timeout_resizePlayer = setTimeout(_resizePlayer, 200));
+  } // intialise a youtube video programmatically
+
+  function initVideo() {
+    var videoId = currentConfig.videoId;
+    var playerDom = document.getElementById("player");
+    var width, height;
+    playerDom !== null &&
+      ((width = playerDom.getAttribute("width")),
+      (height = playerDom.getAttribute("height"))),
+      YTLoaded()
+        ? ((player = new YT.Player("player", {
+            videoId: youtubeId,
+            width: width,
+            height: height,
+            events: {
+              onReady: onPlayerReady,
+              onStateChange: onPlayerStateChange,
+            },
+            playerVars: {
+              rel: 0, // any related videos shown after pausing will be from same channel
+            },
+          })),
+          donsole.log("YT Player initialised."))
+        : (donsole.log("YT Player not ready, retrying..."),
+          setTimeout(initVideo, 250));
+  } // youtube: event handlers
+
+  function onYouTubeIframeAPIReady() {
+    var playerDom = document.getElementById("player");
+    playerDom !== null && initVideo();
+  } // stream position manager
+
+  var _streamPosition =
+    /*#__PURE__*/
+    (function() {
+      function _streamPosition(cachingFrequency) {
+        _classCallCheck(this, _streamPosition),
+          (this._cachingFrequency = cachingFrequency),
+          (this._cache = null),
+          (this._timeout_cacher = null);
+      }
+
+      return (
+        _createClass(_streamPosition, [
+          {
+            key: "_updateCache",
+            value: function _updateCache() {
+              this.cache = this.now;
+            },
+          },
+          {
+            key: "_startCaching",
+            value: function _startCaching() {
+              var _this = this;
+
+              clearTimeout(this._timeout_cacher),
+                this._updateCache(),
+                (this._timeout_cacher = setTimeout(function() {
+                  return _this._startCaching();
+                }, this._cachingFrequency));
+            },
+          },
+          {
+            key: "startCaching",
+            value: function startCaching() {
+              donsole.log("streamPosition: startCaching"), this._startCaching();
+            },
+          },
+          {
+            key: "stopCaching",
+            value: function stopCaching() {
+              donsole.log("streamPosition: stopCaching"),
+                clearTimeout(this._timeout_cacher),
+                (this.cache = null);
+            },
+          },
+          {
+            key: "getLatestCache",
+            value: function getLatestCache() {
+              donsole.log("streamPosition: getLatestCache");
+              var latestCachedPosition = this.cache;
+              var currentPosition = this.now;
+              var cacheIsReasonablyOutdated =
+                currentPosition > latestCachedPosition &&
+                currentPosition - latestCachedPosition <=
+                  this._cachingFrequency;
+              return cacheIsReasonablyOutdated
+                ? currentPosition
+                : latestCachedPosition;
+            },
+          },
+          {
+            key: "now",
+            get: function get() {
+              return Math.round(player.getCurrentTime() * 1000); //must return milliseconds!
+            },
+          },
+          {
+            key: "cache",
+            set: function set(position) {
+              this._cache = position;
+            },
+            get: function get() {
+              return this._cache;
+            },
+          },
+        ]),
+        _streamPosition
+      );
+    })();
+
+  var streamPosition = new _streamPosition(100);
+
+  // Volume Change Detection using recursive setTimeout
+  var prevVolume = null;
+  var timeout_volumeCheck = null;
+
+  function volumeCheck() {
+    var currentVolume = player.isMuted() ? 0 : player.getVolume();
+
+    if (prevVolume !== null && prevVolume != currentVolume) {
+      donsole.log("Tracked: Video is set to volume of ".concat(currentVolume));
+      var result = agent.volume(currentVolume.toString());
+    }
+
+    (prevVolume = currentVolume),
+      (timeout_volumeCheck = setTimeout(volumeCheck, 500));
+  }
+
+  var isFullScreen = function isFullScreen() {
+    return document.fullscreenElement ? 1 : 0;
+  };
+
+  // fullScreen check using event listener
+  var fullScreenHandler = function fullScreenHandler(e) {
+    var fullScreen = isFullScreen();
+    donsole.log(
+      "Tracked: Video is set to fullScreenMode of ".concat(fullScreen)
+    );
+    var result = agent.screen(fullScreen.toString());
+  };
+
+  function onPlayerReady(event) {
+    (agent = gfkS2s.getAgent(function() {
+      return streamPosition.now;
+    })),
+      volumeCheck(),
+      [
+        "fullscreenchange",
+        "webkitfullscreenchange",
+        "mozfullscreenchange",
+        "msfullscreenchange",
+      ].forEach(function(eventType) {
+        return document.addEventListener(eventType, fullScreenHandler, false);
+      });
+  }
+
+  var last_agentStopMeasureEvent = 0;
+
+  function onPlayerStateChange(event) {
+    try {
+      switch (event.data) {
+        case YT.PlayerState.PLAYING: {
+          streamPosition.startCaching(),
+            donsole.log("Tracked: Video is playing");
+          var result = agent.playStreamOnDemand(
+            currentConfig.tracking.contentId, // contentId
+            currentConfig.testingMode ? "testVideo" : location.href, // streamId
+            {
+              screen: isFullScreen().toString(),
+              volume: player.getVolume().toString(),
+            }, // options
+            {} // custom parameters
+          );
+          return result;
+        }
+
+        case YT.PlayerState.PAUSED:
+        case YT.PlayerState.BUFFERING:
+        case YT.PlayerState.ENDED: {
+          if (donsole.active) {
+            var numberState = {};
+
+            for (
+              var _i = 0, _Object$entries = Object.entries(YT.PlayerState);
+              _i < _Object$entries.length;
+              _i++
+            )
+              (item = _Object$entries[_i]), (numberState[item[1]] = item[0]);
+
+            donsole.log(
+              "Tracked: Video is stopped (".concat(numberState[event.data], ")")
+            );
+          }
+
+          var currentTime = new Date().getTime();
+          var acceptableDelay = 0.5 * 1000; // 0.5 seconds
+
+          var _result = false;
+          if (currentTime - last_agentStopMeasureEvent < acceptableDelay)
+            donsole.log(
+              "Repeated stop event, previous tracked event discarded."
+            );
+          else {
+            var latestCachedPosition = streamPosition.getLatestCache();
+            streamPosition.stopCaching(),
+              (_result = agent.stop(latestCachedPosition)),
+              (last_agentStopMeasureEvent = currentTime);
+          }
+          return donsole.log(_result), _result;
+        }
+
+        default:
+          return streamPosition.stopCaching(), false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  var modal;
+  loadScript(
+    "https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.2/tingle.min.js",
+    function() {
+      // instanciate new modal
+      // set content
+      (modal = new tingle.modal({
+        footer: false,
+        stickyFooter: false,
+        closeMethods: ["overlay", "button", "escape"],
+        closeLabel: "",
+        cssClass: ["storeys-video-modal"],
+        onOpen: function onOpen() {
+          donsole.log("modal open"),
+            YTLoaded() && playerLoaded() && player.playVideo();
+        },
+        onClose: function onClose() {
+          donsole.log("modal closed"),
+            YTLoaded() && playerLoaded() && player.stopVideo();
+        },
+        beforeClose: function beforeClose() {
+          return agent && agent.stop(), true; // close the modal
+          // return false; // nothing happens
+        },
+      })),
+        modal.setContent(
+          '<div class="closeButtonContainer" onclick="modal.close();">\n            <div class="closeButton"></div>\n        </div>\n        <div id="playerContainer">\n          <div id="player"></div>\n        </div>'
+        ),
+        (document.querySelector('a[href="#playVideo"]').onclick = function(e) {
+          e.preventDefault(), modal.open(), resizePlayer(true);
+        }),
+        (window.onresize = function() {
+          resizePlayer();
+        });
+    }
+  );
+</script>
