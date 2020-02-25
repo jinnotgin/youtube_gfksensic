@@ -4,6 +4,8 @@
   var details = {
     youtubeId: "U_KH7Tw97HU",
     contentId: "shortclip",
+    videoAirtime: "2015-08-22 18:30+0800", // "YYYY-MM-DD HH:MM+0800"
+    videoLanguage: "ko", // ISO 639-1 (two characters) code for language, https://iso639-3.sil.org/code_tables/639/data
   };
 </script>
 
@@ -13,13 +15,14 @@
     global: {
       regionId: "sg",
       mediaId: "creative_at_work",
+      tvChannel: "storeys",
       environment: "preproduction", // either "preproduction" or "production"
       testingMode: true, // to delete this line for public sites
     },
   };
 </script>
 
-<!-- youtube_gfksensic v0.5 (2020-02-21) -->
+<!-- youtube_gfksensic v0.6 (2020-02-2) -->
 <!-- babel transpiled version -->
 <link
   rel="stylesheet"
@@ -109,6 +112,51 @@
 </style>
 
 <script>
+  function _slicedToArray(arr, i) {
+    return (
+      _arrayWithHoles(arr) ||
+      _iterableToArrayLimit(arr, i) ||
+      _nonIterableRest()
+    );
+  }
+
+  function _nonIterableRest() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance");
+  }
+
+  function _iterableToArrayLimit(arr, i) {
+    if (
+      Symbol.iterator in Object(arr) ||
+      Object.prototype.toString.call(arr) === "[object Arguments]"
+    ) {
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _e = undefined;
+      try {
+        for (
+          var _s, _i = arr[Symbol.iterator]();
+          !(_n = (_s = _i.next()).done) &&
+          (_arr.push(_s.value), !(i && _arr.length === i));
+          _n = true
+        );
+      } catch (err) {
+        (_d = true), (_e = err);
+      } finally {
+        try {
+          !_n && _i["return"] != null && _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }
+      return _arr;
+    }
+  }
+
+  function _arrayWithHoles(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+
   function _instanceof(left, right) {
     return right != null &&
       typeof Symbol !== "undefined" &&
@@ -164,34 +212,43 @@
   var _details$youtubeId = details.youtubeId,
     youtubeId = _details$youtubeId === void 0 ? "" : _details$youtubeId,
     _details$contentId = details.contentId,
-    contentId = _details$contentId === void 0 ? "" : _details$contentId;
+    contentId = _details$contentId === void 0 ? "" : _details$contentId,
+    _details$videoAirtime = details.videoAirtime,
+    videoAirtime =
+      _details$videoAirtime === void 0 ? "" : _details$videoAirtime,
+    _details$videoLanguag = details.videoLanguage,
+    videoLanguage =
+      _details$videoLanguag === void 0 ? "" : _details$videoLanguag;
   var _config$global = config.global,
+    _config$global$testin = _config$global.testingMode,
+    testingMode = _config$global$testin !== void 0 && _config$global$testin,
+    _config$global$enviro = _config$global.environment,
+    environment =
+      _config$global$enviro === void 0
+        ? "preproduction"
+        : _config$global$enviro,
     _config$global$region = _config$global.regionId,
     regionId = _config$global$region === void 0 ? "" : _config$global$region,
     _config$global$projec = _config$global.projectId,
     projectId = _config$global$projec === void 0 ? "" : _config$global$projec,
     _config$global$mediaI = _config$global.mediaId,
     mediaId = _config$global$mediaI === void 0 ? "" : _config$global$mediaI,
-    _config$global$enviro = _config$global.environment,
-    environment =
-      _config$global$enviro === void 0
-        ? "preproduction"
-        : _config$global$enviro,
-    _config$global$testin = _config$global.testingMode,
-    testingMode = _config$global$testin !== void 0 && _config$global$testin;
+    _config$global$tvChan = _config$global.tvChannel,
+    tvChannel = _config$global$tvChan === void 0 ? "" : _config$global$tvChan;
   var currentConfig = {
+    isProduction: environment === "production",
+    testingMode: testingMode,
     videoId: youtubeId,
     tracking: {
       mediaId: mediaId,
       regionId: regionId,
-      // projectId,
       contentId: contentId,
+      videoAirtime: videoAirtime,
+      videoLanguage: videoLanguage,
+      tvChannel: tvChannel,
     },
-    isProduction: environment === "production",
-    testingMode: testingMode,
-  };
+  }; // https://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number/32928812
 
-  // https://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number/32928812
   var donsole = {
     log: currentConfig.testingMode
       ? console.log.bind(window.console)
@@ -202,9 +259,8 @@
     error: currentConfig.testingMode
       ? console.error.bind(window.console)
       : function() {},
-  };
+  }; // to load script asyncronously, with callback function
 
-  // to load script asyncronously, with callback function
   function loadScript(src, callback) {
     var s, r, t;
     (r = false),
@@ -218,9 +274,8 @@
       }),
       (t = document.getElementsByTagName("script")[0]),
       t.parentNode.insertBefore(s, t);
-  }
+  } // gfk_ssa: configs as per documentation
 
-  // gfk_ssa: configs as per documentation
   var agent;
   var gfkS2sConf = {
     media: currentConfig.tracking.mediaId,
@@ -234,9 +289,8 @@
     optin: true,
     type: "WEB",
     logLevel: currentConfig.isProduction ? "none" : "debug",
-  };
+  }; // gfk_ssa: asynchronous loading as per documentation
 
-  // gfk_ssa: asynchronous loading as per documentation
   (function(w, d, c, s, id, v) {
     if (!d.getElementById(id)) {
       (w.gfkS2sConf = c), (w[id] = {}), (w[id].agents = []);
@@ -476,9 +530,8 @@
       );
     })();
 
-  var streamPosition = new _streamPosition(100);
+  var streamPosition = new _streamPosition(100); // Volume Change Detection using recursive setTimeout
 
-  // Volume Change Detection using recursive setTimeout
   var prevVolume = null;
   var timeout_volumeCheck = null;
 
@@ -496,9 +549,8 @@
 
   var isFullScreen = function isFullScreen() {
     return document.fullscreenElement ? 1 : 0;
-  };
+  }; // fullScreen check using event listener
 
-  // fullScreen check using event listener
   var fullScreenHandler = function fullScreenHandler(e) {
     var fullScreen = isFullScreen();
     donsole.log(
@@ -507,7 +559,7 @@
     var result = agent.screen(fullScreen.toString());
   };
 
-  function onPlayerReady(event) {
+  var onPlayerReady = function onPlayerReady(event) {
     (agent = gfkS2s.getAgent(function() {
       return streamPosition.now;
     })),
@@ -520,7 +572,59 @@
       ].forEach(function(eventType) {
         return document.addEventListener(eventType, fullScreenHandler, false);
       });
-  }
+  };
+
+  var _customParamsBuilder = function _customParamsBuilder() {
+    var mapping = {
+      videoType: "cp1",
+      videoId: "cp2",
+      videoTitle: "cp3",
+      videoDuration: "cp4",
+      adId: "cp5",
+      videoPartId: "cp6",
+      videoPartTitle: "cp7",
+      videoPartDuration: "cp8",
+      airtime: "cp9",
+      webStatus: "cp10",
+      payStatus: "cp11",
+      videoUrl: "cp12",
+      language: "cp13",
+      programName: "cp14",
+      tvChannel: "cp15",
+      programId: "cp16",
+      hashTagIdPreair: "cp17",
+      MasterReferenceKeyId: "cp18",
+    };
+    var data = {
+      videoType: 1,
+      // 1 = content, 2 = add, 3 = livestream
+      videoId: currentConfig.videoId,
+      videoTitle: player.getVideoData().title,
+      videoDuration: player.getDuration(),
+      airtime: currentConfig.tracking.videoAirtime,
+      language: currentConfig.tracking.videoLanguage,
+      tvChannel: currentConfig.tracking.tvChannel,
+    };
+    var output = {};
+
+    for (
+      var _i = 0, _Object$entries = Object.entries(data);
+      _i < _Object$entries.length;
+      _i++
+    ) {
+      keyValuePair = _Object$entries[_i];
+
+      var _keyValuePair = keyValuePair,
+        _keyValuePair2 = _slicedToArray(_keyValuePair, 2),
+        key = _keyValuePair2[0],
+        value = _keyValuePair2[1];
+
+      var keyId = mapping[key];
+      typeof keyId !== "undefined" && (output[keyId] = value);
+    }
+
+    return output;
+  };
 
   var last_agentStopMeasureEvent = 0;
 
@@ -537,7 +641,7 @@
               screen: isFullScreen().toString(),
               volume: player.getVolume().toString(),
             }, // options
-            {} // custom parameters
+            _customParamsBuilder() // custom parameters
           );
           return result;
         }
@@ -549,11 +653,11 @@
             var numberState = {};
 
             for (
-              var _i = 0, _Object$entries = Object.entries(YT.PlayerState);
-              _i < _Object$entries.length;
-              _i++
+              var _i2 = 0, _Object$entries2 = Object.entries(YT.PlayerState);
+              _i2 < _Object$entries2.length;
+              _i2++
             )
-              (item = _Object$entries[_i]), (numberState[item[1]] = item[0]);
+              (item = _Object$entries2[_i2]), (numberState[item[1]] = item[0]);
 
             donsole.log(
               "Tracked: Video is stopped (".concat(numberState[event.data], ")")

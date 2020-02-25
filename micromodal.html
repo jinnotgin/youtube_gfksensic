@@ -4,6 +4,8 @@
   var details = {
     youtubeId: "U_KH7Tw97HU",
     contentId: "shortclip",
+    videoAirtime: "2015-08-22 18:30+0800", // "YYYY-MM-DD HH:MM+0800"
+    videoLanguage: "ko", // ISO 639-1 (two characters) code for language, https://iso639-3.sil.org/code_tables/639/data
   };
 </script>
 
@@ -13,13 +15,14 @@
     global: {
       regionId: "sg",
       mediaId: "creative_at_work",
+      tvChannel: "storeys",
       environment: "preproduction", // either "preproduction" or "production"
       testingMode: true, // to delete this line for public sites
     },
   };
 </script>
 
-<!-- youtube_gfksensic v0.5 (2020-02-21) -->
+<!-- youtube_gfksensic v0.6 (2020-02-25) -->
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.2/tingle.min.css"
@@ -110,25 +113,33 @@
 <script>
   if (typeof details !== "object") var details = {};
 
-  const { youtubeId = "", contentId = "" } = details;
   const {
+    youtubeId = "",
+    contentId = "",
+    videoAirtime = "",
+    videoLanguage = "",
+  } = details;
+  const {
+    testingMode = false,
+    environment = "preproduction",
     regionId = "",
     projectId = "",
     mediaId = "",
-    environment = "preproduction",
-    testingMode = false,
+    tvChannel = "",
   } = config.global;
 
   const currentConfig = {
+    isProduction: environment === "production",
+    testingMode,
     videoId: youtubeId,
     tracking: {
       mediaId,
       regionId,
-      // projectId,
       contentId,
+      videoAirtime,
+      videoLanguage,
+      tvChannel,
     },
-    isProduction: environment === "production",
-    testingMode,
   };
 
   // https://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number/32928812
@@ -412,7 +423,7 @@
     donsole.log(`Tracked: Video is set to fullScreenMode of ${fullScreen}`);
     const result = agent.screen(fullScreen.toString());
   };
-  function onPlayerReady(event) {
+  const onPlayerReady = event => {
     agent = gfkS2s.getAgent(() => streamPosition.now);
     volumeCheck();
     [
@@ -423,7 +434,51 @@
     ].forEach(eventType =>
       document.addEventListener(eventType, fullScreenHandler, false)
     );
-  }
+  };
+
+  const _customParamsBuilder = () => {
+    const mapping = {
+      videoType: "cp1",
+      videoId: "cp2",
+      videoTitle: "cp3",
+      videoDuration: "cp4",
+      adId: "cp5",
+      videoPartId: "cp6",
+      videoPartTitle: "cp7",
+      videoPartDuration: "cp8",
+      airtime: "cp9",
+      webStatus: "cp10",
+      payStatus: "cp11",
+      videoUrl: "cp12",
+      language: "cp13",
+      programName: "cp14",
+      tvChannel: "cp15",
+      programId: "cp16",
+      hashTagIdPreair: "cp17",
+      MasterReferenceKeyId: "cp18",
+    };
+
+    const data = {
+      videoType: 1, // 1 = content, 2 = add, 3 = livestream
+      videoId: currentConfig.videoId,
+      videoTitle: player.getVideoData().title,
+      videoDuration: player.getDuration(),
+      airtime: currentConfig.tracking.videoAirtime,
+      language: currentConfig.tracking.videoLanguage,
+      tvChannel: currentConfig.tracking.tvChannel,
+    };
+
+    const output = {};
+    for (keyValuePair of Object.entries(data)) {
+      const [key, value] = keyValuePair;
+
+      const keyId = mapping[key];
+      if (typeof keyId !== "undefined") {
+        output[keyId] = value;
+      }
+    }
+    return output;
+  };
 
   let last_agentStopMeasureEvent = 0;
   function onPlayerStateChange(event) {
@@ -440,7 +495,7 @@
               screen: isFullScreen().toString(),
               volume: player.getVolume().toString(),
             }, // options
-            {} // custom parameters
+            _customParamsBuilder() // custom parameters
           );
           return result;
         }
